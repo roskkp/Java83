@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>게시판-목록</title>
+</head>
+<body>
+	<div id="listPage">
+		<h1>게시물 목록</h1>
+		<p>
+			<a href="add.do">새 글</a>
+		</p>
+		<table border="1" id="boardTbl">
+			<thead>
+				<tr>
+					<th>번호</th>
+					<th>제목</th>
+					<th>생성일</th>
+					<th>조회수</th>
+				</tr>
+			</thead>
+			<tbody>
+			</tbody>
+		</table>
+	</div>
+
+	<div id="formPage">
+		<h2>게시물 - 상세정보</h2>
+		<form>
+			<table border="1">
+				<tr>
+					<th>번호</th>
+					<td><span id="fNo"></span></td>
+				</tr>
+				<tr>
+					<th>제목</th>
+					<td><input id="fTitle" type="text"></td>
+				</tr>
+				<tr>
+					<th>내용</th>
+					<td><textarea id="fContent" cols="60" rows="5"></textarea></td>
+				</tr>
+				<tr>
+					<th>등록일</th>
+					<td><span id="fCreatedDate"></span></td>
+				</tr>
+				<tr>
+					<th>조회수</th>
+					<td><span id="fViewCount"></span></td>
+				</tr>
+			</table>
+			<p>
+				<button id="addBtn" type="button">등록</button>
+				<button id="resetBtn" type="reset">취소</button>
+			</p>
+		</form>
+	</div>
+	<script id="tr-template" type="text/x-handlebars-template">
+{{#each data}}
+  <tr>
+    <td>{{no}}</td>
+    <td><a href='#' data-no='{{no}}' class='titleLink'>{{title}}</a></td>
+    <td>{{createdDate}}</td>
+    <td>{{viewCount}}</td>
+  </tr>
+{{/each}}
+</script>
+	<script src="../node_modules/jquery/dist/jquery.min.js"></script>
+	<script src="../node_modules/handlebars/dist/handlebars.min.js"></script>
+	<script>
+		var source = $('#tr-template').text();
+		var template = Handlebars.compile(source);
+
+		function loadBoards() {
+			$.ajax({
+				url : 'list.json',
+				dataType : 'json',
+				method : 'get',
+				success : function(result) {
+					if (result.status != 'success') {
+						alert('실행 중 오류 발생!');
+						return;
+					}
+					$('#resetBtn').click();
+					$('#boardTbl > tbody').append(template(result));
+					$('#listPage').show();
+				  $('#formPage').hide();
+				},
+				error : function() {
+					alert('서버 요청 오류!')
+				}
+			});
+		};
+
+		
+		loadBoards();
+
+		$('#addBtn').click(function() {
+
+			$.ajax({
+				url : 'add.json',
+				method : 'post',
+				data : {
+					title : $('#fTitle').val(),
+					content : $('#fContent').val()
+				},
+				dataType : 'json',
+				success : function(result) {
+					if (result.status != 'success') {
+						alert('등록 오류입니다.');
+						return;
+					}
+					$('#boardTbl > tbody > tr').remove();
+					loadBoards();
+				},
+				error : function() {
+					alert('서버 요청 오류!');
+				}
+			});
+		});
+
+		$('#boardTbl').on(
+				'click',
+				'.titleLink',
+				function(event) {
+					event.preventDefault();
+
+					$.getJSON('detail.json?no=' + $(this).attr('data-no'),
+							function(result) {
+								if (result.status != 'success') {
+									alert('게시물 조회 오류!');
+									return;
+								}
+								;
+
+								$('#fNo').text(result.data.no);
+								$('#fTitle').val(result.data.title);
+								$('#fContent').val(result.data.content);
+								$('#fCreatedDate')
+										.text(result.data.createdDate);
+								$('#fViewCount').text(result.data.viewCount);
+								
+								$('#formPage').show();
+								$('#listPage').hide();
+							});
+				});
+
+		$('#resetBtn').click(function() {
+			$('#fNo').text('');
+			$('#fCreatedDate').text('');
+			$('#fViewCount').text('');
+		});
+	</script>
+</body>
+</html>

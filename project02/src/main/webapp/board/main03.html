@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>게시판-목록</title>
+</head>
+<body>
+	<h1>게시물 목록</h1>
+	<p>
+		<a href="add.do">새 글</a>
+	</p>
+	<table border="1" id="boardTbl">
+		<thead>
+			<tr>
+				<th>번호</th>
+				<th>제목</th>
+				<th>생성일</th>
+				<th>조회수</th>
+			</tr>
+		</thead>
+		<tbody>
+		</tbody>
+	</table>
+
+	<script id="tr-template" type="text/x-handlebars-template">
+{{#each data}}
+  <tr>
+    <td>{{no}}</td>
+    <td><a href='#' data-no='{{no}}'>{{title}}</a></td>
+    <td>{{createdDate}}</td>
+    <td>{{viewCount}}</td>
+  </tr>
+{{/each}}
+  </script>
+	<script src="../node_modules/jquery/dist/jquery.min.js"></script>
+	<script src="../node_modules/handlebars/dist/handlebars.min.js"></script>
+	<script>
+		var source = $('#tr-template').text();
+		var template = Handlebars.compile(source);
+		$.ajax({
+			url : 'list.json',
+			dataType : 'json',
+			method : 'get',
+			success : function(result) {
+				if (result.status != 'success') {
+					alert('실행 중 오류 발생!');
+					return;
+				}
+				$('#boardTbl > tbody').append(template(result));
+			},
+			error : function() {
+				alert('서버 요청 오류!')
+			}
+		});
+	</script>
+</body>
+</html>
