@@ -1,2 +1,3 @@
-SDFSDFSDF
-dd
+select *
+from boards
+
